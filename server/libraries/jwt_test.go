@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-playground/assert/v2"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestVerifyNonTokenText(t *testing.T) {

@@ -3,7 +3,7 @@ package libraries
 import (
 	"testing"
 
-	"github.com/go-playground/assert/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInvalidPassword(t *testing.T) {
