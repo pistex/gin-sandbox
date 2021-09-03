@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"errors"
-	"kwanjai/config"
 	"kwanjai/helpers"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/models"
 	"log"
@@ -17,7 +17,7 @@ import (
 )
 
 // ProfilePicture endpoint
-func ProfilePicture() gin.HandlerFunc {
+func ProfilePicture(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		file, _, _ := ginContext.Request.FormFile("file")
 		user, _ := ginContext.Get("user")
@@ -60,13 +60,13 @@ type paymentData struct {
 }
 
 // UpgradePlan endpoint
-func UpgradePlan() gin.HandlerFunc {
+func UpgradePlan(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		user, _ := ginContext.Get("user")
 		userObject := user.(*models.User)
 		payment := new(paymentData)
 		ginContext.ShouldBindJSON(payment)
-		client, err := omise.NewClient(config.OmisePublicKey, config.OmiseSecretKey)
+		client, err := omise.NewClient(ctx.GetConfig().OmisePublicKey, ctx.GetConfig().OmiseSecretKey)
 		if err != nil {
 			log.Panicln(err)
 		}
@@ -124,7 +124,7 @@ func UpgradePlan() gin.HandlerFunc {
 			if err != nil {
 				log.Panicln(err)
 			}
-			req.SetBasicAuth(config.OmiseSecretKey, "")
+			req.SetBasicAuth(ctx.GetConfig().OmiseSecretKey, "")
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				log.Panicln(err)
@@ -182,7 +182,7 @@ func UpgradePlan() gin.HandlerFunc {
 }
 
 // Unsubscribe endpoint
-func Unsubscribe() gin.HandlerFunc {
+func Unsubscribe(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		user, _ := ginContext.Get("user")
 		userObject := user.(*models.User)
@@ -192,7 +192,7 @@ func Unsubscribe() gin.HandlerFunc {
 		if err != nil {
 			log.Panicln(err)
 		}
-		req.SetBasicAuth(config.OmiseSecretKey, "")
+		req.SetBasicAuth(ctx.GetConfig().OmiseSecretKey, "")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Panicln(err)

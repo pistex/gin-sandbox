@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"kwanjai/helpers"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/models"
 	"log"
@@ -12,7 +13,7 @@ import (
 )
 
 // Login endpoint
-func Login() gin.HandlerFunc {
+func Login(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		login := new(models.LoginCredential)
 		err := ginContext.ShouldBindJSON(login)
@@ -34,7 +35,7 @@ func Login() gin.HandlerFunc {
 }
 
 // Register endpoint
-func Register() gin.HandlerFunc {
+func Register(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		registerInfo := new(models.User)
 		// Keep in mind.
@@ -75,7 +76,7 @@ func Register() gin.HandlerFunc {
 }
 
 // Logout endpoint
-func Logout() gin.HandlerFunc {
+func Logout(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		logout := new(models.LogoutData)
@@ -116,7 +117,7 @@ func Logout() gin.HandlerFunc {
 }
 
 // RefreshToken endpiont
-func RefreshToken() gin.HandlerFunc {
+func RefreshToken(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		token := new(libraries.Token)
 		ginContext.ShouldBind(token)
@@ -154,7 +155,7 @@ func RefreshToken() gin.HandlerFunc {
 }
 
 // TokenVerification endpiont
-func TokenVerification() gin.HandlerFunc {
+func TokenVerification(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		ginContext.Status(http.StatusOK)
 	}
@@ -167,18 +168,16 @@ type passwordUpdate struct {
 }
 
 // PasswordUpdate endpoint
-func PasswordUpdate() gin.HandlerFunc {
-	return func(ginContext *gin.Context) {
-		passwordForm := new(passwordUpdate)
-		if err := ginContext.ShouldBindJSON(passwordForm); err != nil {
-			ginContext.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		}
-		if passwordForm.NewPassword1 != passwordForm.NewPassword2 {
-			ginContext.JSON(http.StatusBadRequest, gin.H{"message": "Password confrimation failed."})
-		}
-		username := helpers.GetUsername(ginContext)
-		newPassword, _ := libraries.HashPassword(passwordForm.NewPassword1)
-		libraries.FirestoreUpdateField("users", username, "HashedPassword", newPassword)
-		ginContext.JSON(http.StatusOK, gin.H{"message": "Password updated."})
+func PasswordUpdate(ginContext *gin.Context) {
+	passwordForm := new(passwordUpdate)
+	if err := ginContext.ShouldBindJSON(passwordForm); err != nil {
+		ginContext.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 	}
+	if passwordForm.NewPassword1 != passwordForm.NewPassword2 {
+		ginContext.JSON(http.StatusBadRequest, gin.H{"message": "Password confrimation failed."})
+	}
+	username := helpers.GetUsername(ginContext)
+	newPassword, _ := libraries.HashPassword(passwordForm.NewPassword1)
+	libraries.FirestoreUpdateField("users", username, "HashedPassword", newPassword)
+	ginContext.JSON(http.StatusOK, gin.H{"message": "Password updated."})
 }

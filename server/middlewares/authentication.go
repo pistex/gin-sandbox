@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"kwanjai/helpers"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/models"
 	"net/http"
@@ -38,7 +39,7 @@ func JWTAuthorization() gin.HandlerFunc {
 }
 
 // AuthenticatedOnly disallows "anonymous" user.
-func AuthenticatedOnly() gin.HandlerFunc {
+func AuthenticatedOnly(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		if username == "anonymous" {

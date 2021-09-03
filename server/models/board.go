@@ -1,7 +1,7 @@
 package models
 
 import (
-	"kwanjai/config"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"log"
 	"net/http"
@@ -51,13 +51,13 @@ func (board *Board) UpdateBoard(field string, value interface{}) (int, string, *
 }
 
 // DeleteBoard method returns status (int), message (string), nil object.
-func (board *Board) DeleteBoard() (int, string, *Board) {
+func (board *Board) DeleteBoard(ctx interfaces.IContext) (int, string, *Board) {
 	_, err := libraries.FirestoreDelete("boards", board.ID)
 	if err != nil {
 		log.Panicln(err)
 	}
 	db := libraries.FirestoreDB()
-	searchPost := db.Collection("posts").Where("Board", "==", board.ID).Documents(config.Context)
+	searchPost := db.Collection("posts").Where("Board", "==", board.ID).Documents(*ctx.GetConfig().Context)
 	allPost, err := searchPost.GetAll()
 	if err != nil {
 		log.Panic(err)

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"kwanjai/config"
 	"kwanjai/helpers"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/models"
 	"log"
@@ -13,7 +13,7 @@ import (
 )
 
 // AllBoard endpoint
-func AllBoard() gin.HandlerFunc {
+func AllBoard(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		board := new(models.Board)
@@ -48,7 +48,7 @@ func AllBoard() gin.HandlerFunc {
 }
 
 // NewBoard endpoint
-func NewBoard() gin.HandlerFunc {
+func NewBoard(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		board := new(models.Board)
@@ -89,7 +89,7 @@ func NewBoard() gin.HandlerFunc {
 }
 
 // FindBoard endpoint
-func FindBoard() gin.HandlerFunc {
+func FindBoard(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		board := new(models.Board)
@@ -115,7 +115,7 @@ func FindBoard() gin.HandlerFunc {
 }
 
 // UpdateBoard endpoint
-func UpdateBoard() gin.HandlerFunc {
+func UpdateBoard(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		updatedBoard := new(models.Board)
@@ -152,12 +152,12 @@ func UpdateBoard() gin.HandlerFunc {
 			projectID := oldBoard.Project
 			db := libraries.FirestoreDB()
 			// #1 find the board where board.Position = newPosition and change board position to old position
-			searchBoardWithNewPostion := db.Collection("boards").Where("Project", "==", projectID).Where("Position", "==", newPosition).Documents(config.Context)
+			searchBoardWithNewPostion := db.Collection("boards").Where("Project", "==", projectID).Where("Position", "==", newPosition).Documents(*ctx.GetConfig().Context)
 			boardWithNewPostion, err := searchBoardWithNewPostion.GetAll()
 			if err != nil {
 				log.Panic(err)
 			}
-			_, err = db.Collection("boards").Doc(boardWithNewPostion[0].Ref.ID).Update(config.Context, []firestore.Update{
+			_, err = db.Collection("boards").Doc(boardWithNewPostion[0].Ref.ID).Update(*ctx.GetConfig().Context, []firestore.Update{
 				{
 					Path:  "Position",
 					Value: oldPosition,
@@ -167,7 +167,7 @@ func UpdateBoard() gin.HandlerFunc {
 				log.Panic(err)
 			}
 			// #2 change current board position to new position.
-			_, err = db.Collection("boards").Doc(updatedBoard.ID).Update(config.Context, []firestore.Update{
+			_, err = db.Collection("boards").Doc(updatedBoard.ID).Update(*ctx.GetConfig().Context, []firestore.Update{
 				{
 					Path:  "Position",
 					Value: newPosition,
@@ -204,7 +204,7 @@ func UpdateBoard() gin.HandlerFunc {
 }
 
 // DeleteBoard endpoint
-func DeleteBoard() gin.HandlerFunc {
+func DeleteBoard(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		board := new(models.Board)
@@ -220,7 +220,7 @@ func DeleteBoard() gin.HandlerFunc {
 			ginContext.JSON(http.StatusForbidden, gin.H{"message": "You cannot perform this action."})
 			return
 		}
-		status, message, _ = board.DeleteBoard()
+		status, message, _ = board.DeleteBoard(ctx)
 		if status != http.StatusOK {
 			ginContext.JSON(status, gin.H{"message": message})
 			return

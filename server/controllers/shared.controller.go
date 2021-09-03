@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"kwanjai/config"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"log"
 	"net/http"
@@ -11,11 +11,11 @@ import (
 
 // AllUsernames endpoint
 // All usernames are shared to be added into projects.
-func AllUsernames() gin.HandlerFunc {
+func AllUsernames(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		usernames := []string{}
 		db := libraries.FirestoreDB()
-		getUsername := db.Collection("users").Documents(config.Context)
+		getUsername := db.Collection("users").Documents(*ctx.GetConfig().Context)
 		allUsernames, err := getUsername.GetAll()
 		if err != nil {
 			log.Panicln(err)

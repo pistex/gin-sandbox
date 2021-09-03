@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"kwanjai/config"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"log"
 	"math/rand"
@@ -22,6 +22,7 @@ type VerificationEmail struct {
 	Key         string `json:"key"`
 	ID          string
 	ExpiredDate time.Time
+	ctx         interfaces.IContext
 }
 
 // Initialize email objects.
@@ -30,20 +31,20 @@ func (email *VerificationEmail) Initialize(user string, emailAddress string) {
 	email.User = user
 	email.Email = emailAddress
 	email.Key = fmt.Sprintf("%06d", random.Intn(999999))
-	email.ExpiredDate = time.Now().Add(config.EmailVerficationLifetime)
+	email.ExpiredDate = time.Now().Add(*email.ctx.GetConfig().EmailVerficationLifetime)
 }
 
 // Send method for VerificationEmail object.
 func (email *VerificationEmail) Send() (int, string) {
 	// Sender data.
 	from := "surus.d6101@gmail.com"
-	password := config.EmailServicePassword
+	password := email.ctx.GetConfig().EmailServicePassword
 	to := []string{email.Email}
 	if strings.Contains(to[0], "@example.com") {
 		log.Println("email contain @example.com")
 		return http.StatusOK, "Email sent."
 	}
-	verificationLink := fmt.Sprintf("%v/verify_email/%v/", config.FrontendURL, email.ID)
+	verificationLink := fmt.Sprintf("%v/verify_email/%v/", email.ctx.GetConfig().FrontendURL, email.ID)
 	message := fmt.Sprintf("From: Kwanjai Admin <surus.d6101@gmail.com>\r\n"+
 		"To: %v\r\n"+
 		"Subject: Verification email.\r\n"+

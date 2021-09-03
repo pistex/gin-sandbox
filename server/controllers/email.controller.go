@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"kwanjai/interfaces"
 	"kwanjai/models"
 	"net/http"
 
@@ -8,18 +9,19 @@ import (
 )
 
 // VerifyEmail endpoint
-func VerifyEmail() gin.HandlerFunc {
+func VerifyEmail(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		verificationEmail := new(models.VerificationEmail)
 		ginContext.ShouldBind(verificationEmail)
 		verificationEmail.ID = ginContext.Param("ID")
 		status, message := verificationEmail.Verify()
 		ginContext.JSON(status, gin.H{"message": message})
+
 	}
 }
 
 // ResendVerifyEmail endpoint
-func ResendVerifyEmail() gin.HandlerFunc {
+func ResendVerifyEmail(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		verificationEmail := new(models.VerificationEmail)
 		ginContext.ShouldBind(verificationEmail)

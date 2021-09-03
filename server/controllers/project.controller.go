@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"kwanjai/config"
 	"kwanjai/helpers"
+	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/models"
 	"log"
@@ -112,7 +112,7 @@ func UpdateProject() gin.HandlerFunc {
 }
 
 // DeleteProject endpoint
-func DeleteProject() gin.HandlerFunc {
+func DeleteProject(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		username := helpers.GetUsername(ginContext)
 		project := new(models.Project)
@@ -137,7 +137,7 @@ func DeleteProject() gin.HandlerFunc {
 		}
 		status, message, _ = project.DeleteProject()
 		db := libraries.FirestoreDB()
-		searchBoard := db.Collection("boards").Where("Project", "==", project.ID).Documents(config.Context)
+		searchBoard := db.Collection("boards").Where("Project", "==", project.ID).Documents(*ctx.GetConfig().Context)
 		allBoard, err := searchBoard.GetAll()
 		if err != nil {
 			log.Panic(err)
@@ -146,7 +146,7 @@ func DeleteProject() gin.HandlerFunc {
 		for _, b := range allBoard {
 			b.DataTo(board)
 			board.ID = b.Ref.ID
-			board.DeleteBoard()
+			board.DeleteBoard(ctx)
 		}
 		db.Close()
 		ginContext.JSON(status,
