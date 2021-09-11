@@ -15,7 +15,7 @@ func AllUsernames(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		usernames := []string{}
 		db := libraries.FirestoreDB()
-		getUsername := db.Collection("users").Documents(*ctx.GetConfig().Context)
+		getUsername := db.Collection("users").Documents(*ctx.Config().Context)
 		allUsernames, err := getUsername.GetAll()
 		if err != nil {
 			log.Panicln(err)

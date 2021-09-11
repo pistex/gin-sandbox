@@ -11,11 +11,14 @@ services:
       - POSTGRES_DB=my_database
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d my_database -U my_user"]
-      interval: 8s
+      interval: 4s
       timeout: 4s
       retries: 8
+    ports: 
+      - 5432:5432
     volumes: 
       - ./.database:/var/lib/postgresql/data
+
   db-test:
     image: postgres:12.8-alpine3.14
     restart: always
@@ -26,7 +29,7 @@ services:
       - POSTGRES_DB=my_database_test
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d my_database_test -U my_user_test"]
-      interval: 8s
+      interval: 4s
       timeout: 4s
       retries: 8
 

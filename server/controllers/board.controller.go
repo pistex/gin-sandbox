@@ -152,12 +152,12 @@ func UpdateBoard(ctx interfaces.IContext) gin.HandlerFunc {
 			projectID := oldBoard.Project
 			db := libraries.FirestoreDB()
 			// #1 find the board where board.Position = newPosition and change board position to old position
-			searchBoardWithNewPostion := db.Collection("boards").Where("Project", "==", projectID).Where("Position", "==", newPosition).Documents(*ctx.GetConfig().Context)
+			searchBoardWithNewPostion := db.Collection("boards").Where("Project", "==", projectID).Where("Position", "==", newPosition).Documents(*ctx.Config().Context)
 			boardWithNewPostion, err := searchBoardWithNewPostion.GetAll()
 			if err != nil {
 				log.Panic(err)
 			}
-			_, err = db.Collection("boards").Doc(boardWithNewPostion[0].Ref.ID).Update(*ctx.GetConfig().Context, []firestore.Update{
+			_, err = db.Collection("boards").Doc(boardWithNewPostion[0].Ref.ID).Update(*ctx.Config().Context, []firestore.Update{
 				{
 					Path:  "Position",
 					Value: oldPosition,
@@ -167,7 +167,7 @@ func UpdateBoard(ctx interfaces.IContext) gin.HandlerFunc {
 				log.Panic(err)
 			}
 			// #2 change current board position to new position.
-			_, err = db.Collection("boards").Doc(updatedBoard.ID).Update(*ctx.GetConfig().Context, []firestore.Update{
+			_, err = db.Collection("boards").Doc(updatedBoard.ID).Update(*ctx.Config().Context, []firestore.Update{
 				{
 					Path:  "Position",
 					Value: newPosition,

@@ -7,10 +7,10 @@ import (
 )
 
 func UseAuthentionRouter(ctx interfaces.IContext) {
-	authentication := ctx.GetServer().Group("/authentication")
-	authentication.POST("/login", controllers.Login(ctx))
-	authentication.POST("/register", controllers.Register(ctx))
-	authentication.POST("/logout", middlewares.AuthenticatedOnly(ctx), controllers.Logout(ctx))
+	authenticationController := controllers.NewAuthenticationController(ctx)
+	authentication := ctx.Server().Group("/authentication")
+	authentication.POST("/login", authenticationController.Login())
+	authentication.POST("/logout", middlewares.AuthenticatedOnly(ctx), authenticationController.Logout())
 	authentication.POST("/verify_email/:ID", controllers.VerifyEmail(ctx))
 	authentication.POST("/resend_verification_email", controllers.ResendVerifyEmail(ctx))
 	authentication.POST("/token/refresh", controllers.RefreshToken(ctx))

@@ -1,18 +1,21 @@
 package main
 
 import (
+	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
 	"kwanjai/controllers"
+	"kwanjai/helpers"
 	"kwanjai/interfaces"
 	"kwanjai/middlewares"
 	"kwanjai/routes"
 	"kwanjai/types"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getServer(ctx interfaces.IContext) *gin.Engine {
+func Server(ctx interfaces.IContext) *gin.Engine {
 
 	ginEngine := gin.Default()
 
@@ -58,12 +61,19 @@ func getServer(ctx interfaces.IContext) *gin.Engine {
 }
 
 func main() {
-	server := gin.Default()
-	ctx := interfaces.NewContext(&types.Config{}, server)
+	err := helpers.LoadENV(".")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	server.Use(ctx.GetConfig().DefaultAuthenticationMiddleware)
+	db, err := helpers.NewDatabase()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	routes.UseAuthentionRouter(ctx)
+	ctx := interfaces.NewContext(&types.Config{Port: "8080"}, gin.Default(), db)
 
-	server.Run(ctx.GetConfig().Port)
+	routes.UseUserRouter(ctx)
+
+	ctx.Server().Run(fmt.Sprintf(":%s", ctx.Config().Port))
 }
