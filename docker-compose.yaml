@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:12.8-alpine3.14
+    restart: always
+    container_name: kwanjai-db
+    environment:
+      - POSTGRES_USER=my_user
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=my_database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d my_database -U my_user"]
+      interval: 8s
+      timeout: 4s
+      retries: 8
+    volumes: 
+      - ./.database:/var/lib/postgresql/data
+  db-test:
+    image: postgres:12.8-alpine3.14
+    restart: always
+    container_name: kwanjai-db-test
+    environment:
+      - POSTGRES_USER=my_user_test
+      - POSTGRES_PASSWORD=my_password_test
+      - POSTGRES_DB=my_database_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d my_database_test -U my_user_test"]
+      interval: 8s
+      timeout: 4s
+      retries: 8
+
+  migration:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db/my_database -user=my_user -password=my_password migrate
+    container_name: kwanjai-miration
+    volumes:
+      - ./server/database/migration:/flyway/sql
+    depends_on:
+      db:
+        condition: service_healthy
