@@ -12,6 +12,7 @@ import (
 	"kwanjai/types"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func Server(ctx interfaces.IContext) *gin.Engine {
@@ -60,7 +61,6 @@ func Server(ctx interfaces.IContext) *gin.Engine {
 }
 
 func main() {
-	return
 	err := helpers.LoadENV(".")
 	helpers.CheckErrorAndPanic(err)
 
@@ -68,7 +68,7 @@ func main() {
 	helpers.CheckErrorAndPanic(err)
 	defer db.Close()
 
-	ctx := interfaces.NewContext(&types.Config{Port: "8080"}, gin.Default(), db)
+	ctx := interfaces.NewContext(&types.Config{Port: viper.GetString("PORT")}, gin.Default(), db)
 
 	routes.UseUserRouter(ctx)
 

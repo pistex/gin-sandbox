@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+  server:
+    build:
+      context: ./server
+      dockerfile: dev.Dockerfile
+    container_name: kwanjai-server
+    restart: always
+    volumes:
+      - ./server:/app
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
   db:
     image: postgres:12.8-alpine3.14
     restart: always
