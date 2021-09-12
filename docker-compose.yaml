@@ -12,7 +12,18 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  e2e:
+    build:
+      context: ./server
+      dockerfile: e2e.Dockerfile
+    container_name: kwanjai-e2e-test
+    depends_on:
+      test-db:
+        condition: service_healthy
+
   db:
     image: postgres:12.8-alpine3.14
     restart: always
@@ -31,10 +42,20 @@ services:
     volumes: 
       - ./.database:/var/lib/postgresql/data
 
-  db-test:
+  db-migration:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db/my_database -user=my_user -password=my_password migrate
+    container_name: kwanjai-db-migration
+    volumes:
+      - ./server/database/migration:/flyway/sql
+    depends_on:
+      db:
+        condition: service_healthy
+
+  test-db:
     image: postgres:12.8-alpine3.14
     restart: always
-    container_name: kwanjai-db-test
+    container_name: kwanjai-test-db
     environment:
       - POSTGRES_USER=my_test_user
       - POSTGRES_PASSWORD=my_test_password
@@ -46,13 +67,13 @@ services:
       interval: 4s
       timeout: 4s
       retries: 8
-
-  migration:
+  
+  test-db-migration:
     image: flyway/flyway
-    command: -url=jdbc:postgresql://db/my_database -user=my_user -password=my_password migrate
-    container_name: kwanjai-miration
+    command: -url=jdbc:postgresql://test-db/my_test_database -user=my_test_user -password=my_test_password migrate
+    container_name: kwanjai-test-db-migration
     volumes:
       - ./server/database/migration:/flyway/sql
     depends_on:
-      db:
+      test-db:
         condition: service_healthy

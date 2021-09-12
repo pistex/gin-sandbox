@@ -61,7 +61,8 @@ func Server(ctx interfaces.IContext) *gin.Engine {
 }
 
 func main() {
-	err := helpers.LoadENV(".")
+
+	err := helpers.LoadENV()
 	helpers.CheckErrorAndPanic(err)
 
 	db, err := helpers.NewDatabase()

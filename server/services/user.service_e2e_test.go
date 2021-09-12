@@ -7,7 +7,6 @@ import (
 	"kwanjai/messages"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,13 +19,13 @@ type UserServiceTestSuite struct {
 }
 
 func (s *UserServiceTestSuite) SetupSuite() {
-	viper.AutomaticEnv()
+	err := helpers.LoadENV()
+	s.NoError(err)
 	db, err := helpers.NewTestDatabase()
 	s.NotEmpty(db)
 	s.NoError(err)
 	s.ctx = interfaces.NewContext(nil, nil, db)
 	s.service = NewUserService(s.ctx)
-	err = helpers.MigrateTestDatabase()
 	s.NoError(err)
 }
 
