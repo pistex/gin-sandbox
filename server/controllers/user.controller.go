@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"errors"
-	"kwanjai/consts"
 	"kwanjai/helpers"
 	"kwanjai/interfaces"
+	"kwanjai/messages"
 	"kwanjai/requests"
 	"kwanjai/services"
 	"kwanjai/views"
@@ -27,19 +27,22 @@ func (c *userController) Create() gin.HandlerFunc {
 		request := &requests.UserCreate{}
 		err := g.ShouldBindJSON(request)
 		if err != nil {
-			g.JSON(helpers.NewBadRequestError(err).GetStatus(), helpers.NewBadRequestError(err).GetJSON())
+			httpError := helpers.NewBadRequestError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
 
 		userSerice := services.NewUserService(c.ctx)
 		user, err := userSerice.Create(request.Email, request.Password)
-		if errors.Is(err, consts.DuplicatedEmail) {
-			g.JSON(helpers.NewBadRequestError(err).GetStatus(), helpers.NewBadRequestError(err).GetJSON())
+		if errors.Is(err, messages.ErrDuplicatedEmail) {
+			httpError := helpers.NewBadRequestError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
 
 		if err != nil {
-			g.JSON(helpers.NewInternalServerError(err).GetStatus(), helpers.NewInternalServerError(err).GetJSON())
+			httpError := helpers.NewInternalServerError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
 
@@ -58,18 +61,22 @@ func (c *userController) ChangePassword(ctx interfaces.IContext) gin.HandlerFunc
 		request := &requests.UserChangePassword{}
 		err = g.ShouldBindJSON(request)
 		if err != nil {
-			g.JSON(helpers.NewBadRequestError(err).GetStatus(), helpers.NewBadRequestError(err).GetJSON())
+			httpError := helpers.NewBadRequestError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
 
 		userSerice := services.NewUserService(ctx)
 		err = userSerice.ChangePassword(userID, request.Password, request.NewPassword)
-		if err == consts.CredentialMismatch {
-			g.JSON(helpers.NewBadRequestError(err).GetStatus(), helpers.NewBadRequestError(err).GetJSON())
+		if err == messages.ErrCredentialMismatch {
+			httpError := helpers.NewBadRequestError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
+
 		if err != nil {
-			g.JSON(helpers.NewInternalServerError(err).GetStatus(), helpers.NewInternalServerError(err).GetJSON())
+			httpError := helpers.NewInternalServerError(err)
+			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
 		}
 

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"kwanjai/interfaces"
+	"log"
 	"net/http"
 )
 
@@ -29,5 +30,11 @@ func NewInternalServerError(err error) interfaces.IHTTPError {
 	return &httpError{
 		status:  http.StatusInternalServerError,
 		Message: err.Error(),
+	}
+}
+
+func CheckErrorAndPanic(err error) {
+	if err != nil {
+		log.Panicln(err)
 	}
 }

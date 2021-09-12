@@ -6,7 +6,7 @@ import (
 
 // HashPassword function generates salted and hashed password, returns password (string) and error.
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 8)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(bytes), err
 }
 

@@ -3,6 +3,7 @@ package interfaces
 import (
 	"kwanjai/types"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
@@ -37,4 +38,42 @@ func (c *defaultContext) Server() *gin.Engine {
 
 func (c *defaultContext) DB() *sqlx.DB {
 	return c.db
+}
+
+type mockContext struct {
+	config *types.Config
+	gin    *gin.Engine
+	db     *sqlx.DB
+	mock   sqlmock.Sqlmock
+}
+
+type IMockContext interface {
+	IContext
+	SQLMock() sqlmock.Sqlmock
+}
+
+func NewMockContext(config *types.Config, gin *gin.Engine) IMockContext {
+	db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	return &mockContext{
+		config: config,
+		gin:    gin,
+		db:     sqlx.NewDb(db, "postgresql"),
+		mock:   mock,
+	}
+}
+
+func (c *mockContext) Config() *types.Config {
+	return c.config
+}
+
+func (c *mockContext) Server() *gin.Engine {
+	return c.gin
+}
+
+func (c *mockContext) DB() *sqlx.DB {
+	return c.db
+}
+
+func (c *mockContext) SQLMock() sqlmock.Sqlmock {
+	return c.mock
 }

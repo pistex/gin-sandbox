@@ -10,7 +10,6 @@ import (
 	"kwanjai/middlewares"
 	"kwanjai/routes"
 	"kwanjai/types"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -62,18 +61,15 @@ func Server(ctx interfaces.IContext) *gin.Engine {
 
 func main() {
 	err := helpers.LoadENV(".")
-	if err != nil {
-		log.Fatal(err)
-	}
+	helpers.CheckErrorAndPanic(err)
 
 	db, err := helpers.NewDatabase()
-	if err != nil {
-		log.Fatal(err)
-	}
+	helpers.CheckErrorAndPanic(err)
+	defer db.Close()
 
 	ctx := interfaces.NewContext(&types.Config{Port: "8080"}, gin.Default(), db)
 
 	routes.UseUserRouter(ctx)
 
-	ctx.Server().Run(fmt.Sprintf(":%s", ctx.Config().Port))
+	helpers.CheckErrorAndPanic(ctx.Server().Run(fmt.Sprintf(":%s", ctx.Config().Port)))
 }
