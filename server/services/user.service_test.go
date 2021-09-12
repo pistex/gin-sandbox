@@ -29,6 +29,7 @@ func TestFindUserByEmailSuccess(t *testing.T) {
 		)
 	user, err := userService.FindByEmail(email)
 	assert.NotEmpty(t, user)
+	assert.Equal(t, user.Email, email)
 	assert.NoError(t, err)
 }
 

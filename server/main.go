@@ -60,6 +60,7 @@ func Server(ctx interfaces.IContext) *gin.Engine {
 }
 
 func main() {
+	return
 	err := helpers.LoadENV(".")
 	helpers.CheckErrorAndPanic(err)
 
