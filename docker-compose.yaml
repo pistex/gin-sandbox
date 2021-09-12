@@ -4,7 +4,7 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: dev.Dockerfile
+      dockerfile: ./docker/dev.Dockerfile
     container_name: kwanjai-server
     restart: always
     volumes:
@@ -18,7 +18,7 @@ services:
   e2e:
     build:
       context: ./server
-      dockerfile: e2e.Dockerfile
+      dockerfile: ./docker/e2e.Dockerfile
     container_name: kwanjai-e2e-test
     depends_on:
       test-db:
