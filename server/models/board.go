@@ -57,7 +57,7 @@ func (board *Board) DeleteBoard(ctx interfaces.IContext) (int, string, *Board) {
 		log.Panicln(err)
 	}
 	db := libraries.FirestoreDB()
-	searchPost := db.Collection("posts").Where("Board", "==", board.ID).Documents(*ctx.Config().Context)
+	searchPost := db.Collection("posts").Where("Board", "==", board.ID).Documents(ctx.Config().Context)
 	allPost, err := searchPost.GetAll()
 	if err != nil {
 		log.Panic(err)

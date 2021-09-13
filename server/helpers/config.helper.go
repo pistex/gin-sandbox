@@ -4,9 +4,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LoadENV() (err error) {
+func LoadENV(filename string) (err error) {
 	viper.New()
-	viper.SetConfigFile("../.env")
+	viper.SetConfigFile(filename)
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()

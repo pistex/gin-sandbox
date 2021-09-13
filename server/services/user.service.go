@@ -13,10 +13,10 @@ import (
 )
 
 type IUserService interface {
-	Create(email string, password string) (*models.User, error)
-	Find(id uuid.UUID) (*models.User, error)
-	FindByEmail(email string) (*models.User, error)
-	Update(user models.User) (*models.User, error)
+	Create(email string, password string) (user *models.User, err error)
+	Find(id uuid.UUID) (user *models.User, err error)
+	FindByEmail(email string) (user *models.User, err error)
+	Update(id uuid.UUID) (user *models.User, err error)
 	ChangePassword(id uuid.UUID, password string, newPassword string) error
 }
 
@@ -74,7 +74,7 @@ func (s *userService) FindByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (s *userService) Update(user models.User) (*models.User, error) {
+func (s *userService) Update(id uuid.UUID) (*models.User, error) {
 	panic("implement me")
 }
 

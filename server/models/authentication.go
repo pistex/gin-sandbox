@@ -29,17 +29,7 @@ type LogoutData struct {
 
 // Verify logout credential.
 func (logout *LogoutData) Verify(tokenString string, tokenType string, passed chan bool, UUID chan string) {
-	if tokenType == "access" {
-		logout.AccessPassed, logout.User, logout.AccessTokenID, _ = libraries.VerifyToken(tokenString, "access")
-		passed <- logout.AccessPassed
-		UUID <- logout.AccessTokenID
-	} else if tokenType == "refresh" {
-		logout.RefreshPassed, logout.User, logout.RefreshTokenID, _ = libraries.VerifyToken(tokenString, "refresh")
-		passed <- logout.RefreshPassed
-		UUID <- logout.RefreshTokenID
-	} else {
-		return
-	}
+	panic("implement me")
 }
 
 // Login method

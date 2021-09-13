@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
@@ -10,9 +11,9 @@ import (
 	"kwanjai/middlewares"
 	"kwanjai/routes"
 	"kwanjai/types"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 func Server(ctx interfaces.IContext) *gin.Engine {
@@ -62,16 +63,33 @@ func Server(ctx interfaces.IContext) *gin.Engine {
 
 func main() {
 
-	err := helpers.LoadENV()
+	err := helpers.LoadENV(".env")
 	helpers.CheckErrorAndPanic(err)
 
 	db, err := helpers.NewDatabase()
 	helpers.CheckErrorAndPanic(err)
 	defer db.Close()
 
-	ctx := interfaces.NewContext(&types.Config{Port: viper.GetString("PORT")}, gin.Default(), db)
+	cache := helpers.NewCache()
+	defer cache.Close()
+
+	ctx := interfaces.NewContext(
+		&types.Config{
+			Port:                         helpers.ENVGetString("PORT"),
+			BackendURL:                   "http://localhost:8080",
+			Context:                      context.Background(),
+			CodeChallengeMethod:          "S256",
+			AuthorizationRequestLifetime: 30 * time.Second,
+			JWTTokenLifetime:             1 * time.Hour,
+			NonceLifetime:                48 * time.Hour,
+		},
+		gin.Default(),
+		db,
+		cache,
+	)
 
 	routes.UseUserRouter(ctx)
+	routes.UseAuthRouter(ctx)
 
 	helpers.CheckErrorAndPanic(ctx.Server().Run(fmt.Sprintf(":%s", ctx.Config().Port)))
 }

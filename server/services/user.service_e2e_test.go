@@ -19,12 +19,12 @@ type UserServiceTestSuite struct {
 }
 
 func (s *UserServiceTestSuite) SetupSuite() {
-	err := helpers.LoadENV()
+	err := helpers.LoadENV("../.env")
 	s.NoError(err)
 	db, err := helpers.NewTestDatabase()
 	s.NotEmpty(db)
 	s.NoError(err)
-	s.ctx = interfaces.NewContext(nil, nil, db)
+	s.ctx = interfaces.NewContext(nil, nil, db, nil)
 	s.service = NewUserService(s.ctx)
 	s.NoError(err)
 }

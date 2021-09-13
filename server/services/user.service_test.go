@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"kwanjai/helpers"
 	"kwanjai/interfaces"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 func TestFindUserByEmailSuccess(t *testing.T) {
 	email := "jonh@example.com"
-	ctx := interfaces.NewMockContext(nil, nil)
+	ctx := interfaces.NewMockContext(nil, nil, helpers.ENVGetString("SQL_MOCK_DRIVER"))
 	userService := NewUserService(ctx)
 
 	ctx.SQLMock().
@@ -35,7 +36,7 @@ func TestFindUserByEmailSuccess(t *testing.T) {
 
 func TestFindUserByEmailNotFound(t *testing.T) {
 	email := "jonh@example.com"
-	ctx := interfaces.NewMockContext(nil, nil)
+	ctx := interfaces.NewMockContext(nil, nil, helpers.ENVGetString("SQL_MOCK_DRIVER"))
 	userService := NewUserService(ctx)
 
 	ctx.SQLMock().

@@ -137,7 +137,7 @@ func DeleteProject(ctx interfaces.IContext) gin.HandlerFunc {
 		}
 		status, message, _ = project.DeleteProject()
 		db := libraries.FirestoreDB()
-		searchBoard := db.Collection("boards").Where("Project", "==", project.ID).Documents(*ctx.Config().Context)
+		searchBoard := db.Collection("boards").Where("Project", "==", project.ID).Documents(ctx.Config().Context)
 		allBoard, err := searchBoard.GetAll()
 		if err != nil {
 			log.Panic(err)
