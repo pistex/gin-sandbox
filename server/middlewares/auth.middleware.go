@@ -83,7 +83,6 @@ func JWT(ctx interfaces.IContext) gin.HandlerFunc {
 		}
 
 		g.Set("user", user)
-		g.Set("tokenID", tokenID)
 	}
 }
 

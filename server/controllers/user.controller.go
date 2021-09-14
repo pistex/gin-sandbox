@@ -64,7 +64,7 @@ func (c *userController) Profile() gin.HandlerFunc {
 			return
 		}
 
-		g.JSON(http.StatusCreated, views.NewUserView(userModel))
+		g.JSON(http.StatusOK, views.NewUserView(userModel))
 	}
 }
 

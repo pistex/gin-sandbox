@@ -17,7 +17,7 @@ import (
 
 type IAuthService interface {
 	Create(codeChallenge string, codeChallengeMethod string) (authorizationCode string, err error)
-	Delete(authorizationCode string) error
+	Revoke(name string) error
 	Login(email string, password string, authorizationCode string, codeVerifier string) (nonce string, err error)
 	Logout(nonce string, userID string, userIP string) (err error)
 	CreateToken(authorizationCode string, codeVerifier string, nonce string, userIP string) (newNonce string, token string, err error)
@@ -44,7 +44,7 @@ func (s *authService) Login(email string, password string, authorizationCode str
 
 	hashedCodeVerifier := helpers.HashStringToBase64(codeVerifier, crypto.SHA256)
 	if hashedCodeVerifier != codeChallenge {
-		err := s.Delete(authorizationCode)
+		err := s.Revoke(authorizationCode)
 		if err != nil {
 			return "", err
 		}
@@ -83,7 +83,7 @@ func (s *authService) Create(codeChallenge string, codeChallengeMethod string) (
 	).Err()
 }
 
-func (s *authService) Delete(authorizationCode string) error {
+func (s *authService) Revoke(authorizationCode string) error {
 	return s.ctx.Cache().Del(s.ctx.Config().Context, authorizationCode).Err()
 }
 
@@ -95,7 +95,7 @@ func (s *authService) CreateToken(authorizationCode string, codeVerifier string,
 
 	hashedCodeVerifier := helpers.HashStringToBase64(codeVerifier, crypto.SHA256)
 	if hashedCodeVerifier != codeChallenge {
-		err := s.Delete(authorizationCode)
+		err := s.Revoke(authorizationCode)
 		if err != nil {
 			return "", "", err
 		}
@@ -163,12 +163,12 @@ func (s *authService) VerifyToken(tokenString string) (*jwt.Token, error) {
 }
 
 func (s *authService) Logout(nonce string, userID string, userIP string) error {
-	err := s.Delete(nonce)
+	err := s.Revoke(nonce)
 	if err != nil {
 		return nil
 	}
 
-	return s.Delete(fmt.Sprintf("%s:%s", userID, userIP))
+	return s.Revoke(fmt.Sprintf("%s:%s", userID, userIP))
 }
 
 func (s *authService) getPrivateKey() (*ecdsa.PrivateKey, error) {
