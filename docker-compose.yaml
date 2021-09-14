@@ -60,11 +60,11 @@ services:
       - ./.database:/var/lib/postgresql/data
   
   db-migration:
-    image: flyway/flyway
-    command: -url=jdbc:postgresql://db/my_database -user=my_user -password=my_password migrate
+    image: liquibase/liquibase
+    command: --classpath /liquibase/changelog --defaultsFile /liquibase/changelog/liquibase.properties --changelog-file db.changelog-master.xml --url jdbc:postgresql://db:5432/my_database --password my_password --username my_user migrate
     container_name: kwanjai-db-migration
     volumes:
-      - ./server/database/migration:/flyway/sql
+      - ./server/database/migration:/liquibase/changelog
     depends_on:
       db:
         condition: service_healthy
@@ -86,11 +86,11 @@ services:
       retries: 8
   
   test-db-migration:
-    image: flyway/flyway
-    command: -url=jdbc:postgresql://test-db/my_test_database -user=my_test_user -password=my_test_password migrate
+    image: liquibase/liquibase
+    command: --classpath /liquibase/changelog --defaultsFile /liquibase/changelog/liquibase.properties --changelog-file db.changelog-master.xml --url jdbc:postgresql://db-test:54321/my_test_database --password my_test_password --username my_test_user migrate
     container_name: kwanjai-test-db-migration
     volumes:
-      - ./server/database/migration:/flyway/sql
+      - ./server/database/migration:/liquibase/changelog
     depends_on:
       test-db:
         condition: service_healthy
