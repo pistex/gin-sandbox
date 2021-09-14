@@ -88,6 +88,9 @@ func main() {
 		cache,
 	)
 
+	// Add global middleware here
+	// ctx.Server().Use(middlewares.RequestLogger(ctx))
+
 	routes.UseUserRouter(ctx)
 	routes.UseAuthRouter(ctx)
 

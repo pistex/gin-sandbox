@@ -19,8 +19,8 @@ type IAuthService interface {
 	Create(codeChallenge string, codeChallengeMethod string) (authorizationCode string, err error)
 	Delete(authorizationCode string) error
 	Login(email string, password string, authorizationCode string, codeVerifier string) (nonce string, err error)
-	Logout(nonce string, tokenID string) (err error)
-	CreateToken(authorizationCode string, codeVerifier string, nonce string) (newNonce string, token string, err error)
+	Logout(nonce string, userID string, userIP string) (err error)
+	CreateToken(authorizationCode string, codeVerifier string, nonce string, userIP string) (newNonce string, token string, err error)
 	VerifyToken(tokenString string) (token *jwt.Token, err error)
 }
 
@@ -39,7 +39,7 @@ func NewAuthService(ctx interfaces.IContext) IAuthService {
 func (s *authService) Login(email string, password string, authorizationCode string, codeVerifier string) (string, error) {
 	codeChallenge := s.ctx.Cache().Get(s.ctx.Config().Context, authorizationCode).Val()
 	if codeChallenge == "" {
-		return "", messages.ErrBadAuthorizationSession
+		return "", messages.ErrBadAuthenticationSession
 	}
 
 	hashedCodeVerifier := helpers.HashStringToBase64(codeVerifier, crypto.SHA256)
@@ -48,7 +48,7 @@ func (s *authService) Login(email string, password string, authorizationCode str
 		if err != nil {
 			return "", err
 		}
-		return "", messages.ErrBadAuthorizationSession
+		return "", messages.ErrBadAuthenticationSession
 	}
 
 	err := s.ctx.Cache().Del(s.ctx.Config().Context, authorizationCode).Err()
@@ -87,10 +87,10 @@ func (s *authService) Delete(authorizationCode string) error {
 	return s.ctx.Cache().Del(s.ctx.Config().Context, authorizationCode).Err()
 }
 
-func (s *authService) CreateToken(authorizationCode string, codeVerifier string, nonce string) (string, string, error) {
+func (s *authService) CreateToken(authorizationCode string, codeVerifier string, nonce string, userIP string) (string, string, error) {
 	codeChallenge := s.ctx.Cache().Get(s.ctx.Config().Context, authorizationCode).Val()
 	if codeChallenge == "" {
-		return "", "", messages.ErrBadAuthorizationSession
+		return "", "", messages.ErrBadAuthenticationSession
 	}
 
 	hashedCodeVerifier := helpers.HashStringToBase64(codeVerifier, crypto.SHA256)
@@ -99,7 +99,7 @@ func (s *authService) CreateToken(authorizationCode string, codeVerifier string,
 		if err != nil {
 			return "", "", err
 		}
-		return "", "", messages.ErrBadAuthorizationSession
+		return "", "", messages.ErrBadAuthenticationSession
 	}
 
 	err := s.ctx.Cache().Del(s.ctx.Config().Context, authorizationCode).Err()
@@ -138,7 +138,8 @@ func (s *authService) CreateToken(authorizationCode string, codeVerifier string,
 		return "", "", err
 	}
 
-	err = s.ctx.Cache().Set(s.ctx.Config().Context, claims.Id, user.ID.String(), s.ctx.Config().JWTTokenLifetime).Err()
+	sessionName := fmt.Sprintf("%s:%s", user.ID.String(), userIP)
+	err = s.ctx.Cache().Set(s.ctx.Config().Context, sessionName, claims.Id, s.ctx.Config().JWTTokenLifetime).Err()
 	if err != nil {
 		return "", "", err
 	}
@@ -161,12 +162,13 @@ func (s *authService) VerifyToken(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, keyFunc)
 }
 
-func (s *authService) Logout(nonce string, tokenID string) error {
+func (s *authService) Logout(nonce string, userID string, userIP string) error {
 	err := s.Delete(nonce)
 	if err != nil {
 		return nil
 	}
-	return s.Delete(tokenID)
+
+	return s.Delete(fmt.Sprintf("%s:%s", userID, userIP))
 }
 
 func (s *authService) getPrivateKey() (*ecdsa.PrivateKey, error) {

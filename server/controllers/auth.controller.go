@@ -6,6 +6,7 @@ import (
 	"kwanjai/interfaces"
 	"kwanjai/libraries"
 	"kwanjai/messages"
+	"kwanjai/models"
 	"kwanjai/requests"
 	"kwanjai/services"
 	"net/http"
@@ -59,7 +60,7 @@ func (c *authController) Login() gin.HandlerFunc {
 
 		authService := services.NewAuthService(c.ctx)
 		nonce, err := authService.Login(request.Email, request.Password, request.AuthorizationCode, request.CodeVerifier)
-		if errors.Is(err, messages.ErrCredentialMismatch) || errors.Is(err, messages.ErrBadAuthorizationSession) {
+		if errors.Is(err, messages.ErrCredentialMismatch) || errors.Is(err, messages.ErrBadAuthenticationSession) {
 			httpError := messages.NewBadRequestError(err)
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return
@@ -86,20 +87,20 @@ func (c *authController) Logout() gin.HandlerFunc {
 			return
 		}
 
-		tokenID, exist := g.Get("tokenID")
+		user, exist := g.Get("user")
 		if !exist {
 			g.Status(http.StatusInternalServerError)
 			return
 		}
 
-		tokenIDString, ok := tokenID.(string)
+		_, ok := user.(*models.User)
 		if !ok {
 			g.Status(http.StatusInternalServerError)
 			return
 		}
 
 		authService := services.NewAuthService(c.ctx)
-		err = authService.Logout(nonce, tokenIDString)
+		err = authService.Logout(nonce, user.(*models.User).ID.String(), g.ClientIP())
 		if err != nil {
 			httpError := messages.NewInternalServerError(err)
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
@@ -132,8 +133,8 @@ func (c *authController) CreateToken() gin.HandlerFunc {
 		}
 
 		authService := services.NewAuthService(c.ctx)
-		nonce, token, err := authService.CreateToken(authorizationCode, codeVerifier, nonce)
-		if errors.Is(err, messages.ErrBadAuthorizationSession) {
+		nonce, token, err := authService.CreateToken(authorizationCode, codeVerifier, nonce, g.ClientIP())
+		if errors.Is(err, messages.ErrBadAuthenticationSession) {
 			httpError := messages.NewBadRequestError(err)
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 			return

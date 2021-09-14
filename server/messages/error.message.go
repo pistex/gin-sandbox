@@ -8,7 +8,7 @@ import (
 
 var ErrCredentialMismatch = errors.New("email or password is not correct")
 var ErrDuplicatedEmail = errors.New("this email already register")
-var ErrBadAuthorizationSession = errors.New("bad authorization session")
+var ErrBadAuthenticationSession = errors.New("bad authentication session")
 var ErrNonceUsedOrExpired = errors.New("nonce is used or expired")
 var ErrLoadPrivateKey = errors.New("cannot load private key")
 

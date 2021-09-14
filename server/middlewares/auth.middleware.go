@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	"kwanjai/helpers"
 	"kwanjai/interfaces"
 	"kwanjai/messages"
@@ -14,28 +15,30 @@ import (
 	"github.com/google/uuid"
 )
 
-// JWT middleware.
-// Base authentication which always stores user object in Gin context.
-// If token verification failed, anonymous user object is stored.
+// JWT middleware
 func JWT(ctx interfaces.IContext) gin.HandlerFunc {
 	return func(g *gin.Context) {
+		// Get header from Authorization header
 		authHeader := g.GetHeader("Authorization")
 		if authHeader == "" {
 			g.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
+		// Split authHeader which should be in from of `TokenPrefix Token` by space
 		split := strings.Split(authHeader, " ")
 		if len(split) != 2 {
 			g.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
+		// Check if token prefix is `Bearer`
 		if split[0] != "Bearer" {
 			g.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
+		// Verify token
 		auhtService := services.NewAuthService(ctx)
 		token, err := auhtService.VerifyToken(split[1])
 		if errors.Is(err, messages.ErrLoadPrivateKey) {
@@ -55,12 +58,17 @@ func JWT(ctx interfaces.IContext) gin.HandlerFunc {
 			return
 		}
 
-		err = ctx.Cache().Get(ctx.Config().Context, claim.Id).Err()
-		if err != nil {
+		// Check if token is still has not been revoked or expired
+		sessionName := fmt.Sprintf("%s:%s", claim.Subject, g.ClientIP())
+		tokenID := ctx.Cache().Get(ctx.Config().Context, sessionName).Val()
+		if tokenID != claim.Id {
+			// This means token is not issued by authService
 			g.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
+		// Store user in context
+		// If an error occurs from this step should be from internal
 		userService := services.NewUserService(ctx)
 		id, err := uuid.Parse(claim.Subject)
 		if err != nil {
@@ -75,7 +83,7 @@ func JWT(ctx interfaces.IContext) gin.HandlerFunc {
 		}
 
 		g.Set("user", user)
-		g.Set("tokenID", claim.Id)
+		g.Set("tokenID", tokenID)
 	}
 }
 
